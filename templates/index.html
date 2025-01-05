@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arch Data Manager</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Arch Telecom Data Manager</h1>
+        
+        <div class="card">
+            <h2>Upload File</h2>
+            <form id="uploadForm">
+                <div class="form-group">
+                    <label for="file">Select File (CSV or Excel):</label>
+                    <input type="file" id="file" name="file" accept=".csv,.xlsx,.xls" required>
+                </div>
+                <div class="form-group">
+                    <label for="uploadTable">Select Table:</label>
+                    <select id="uploadTable" name="table_name" required>
+                        {% for table in tables %}
+                        <option value="{{ table }}">{{ table }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit">Upload</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>Download Data</h2>
+            <form id="downloadForm">
+                <div class="form-group">
+                    <label for="downloadTable">Select Table:</label>
+                    <select id="downloadTable" name="table_name" required>
+                        {% for table in tables %}
+                        <option value="{{ table }}">{{ table }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="startDate">Start Date:</label>
+                    <input type="date" id="startDate" name="start_date">
+                </div>
+                <div class="form-group">
+                    <label for="endDate">End Date:</label>
+                    <input type="date" id="endDate" name="end_date">
+                </div>
+                <div class="form-group">
+                    <label for="format">Export Format:</label>
+                    <select id="format" name="format">
+                        <option value="csv">CSV</option>
+                        <option value="xlsx">Excel</option>
+                    </select>
+                </div>
+                <button type="submit">Download</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append('file', document.getElementById('file').files[0]);
+            formData.append('table_name', document.getElementById('uploadTable').value);
+
+            try {
+                const response = await fetch('/upload/', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+                alert(result.message || result.error);
+            } catch (error) {
+                alert('Error uploading file');
+            }
+        });
+
+        document.getElementById('downloadForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const table = document.getElementById('downloadTable').value;
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const format = document.getElementById('format').value;
+
+            let url = `/download/?table_name=${table}&format=${format}`;
+            if (startDate) url += `&start_date=${startDate}`;
+            if (endDate) url += `&end_date=${endDate}`;
+
+            window.location.href = url;
+        });
+    </script>
+</body>
+</html>
